@@ -1,5 +1,5 @@
 # Taipan v0.9
-# A text adventure game for Linux.
+# A text adventure game for Linux and Windows.
 # Copyright (c) 1978-2002 - All Rights Reserved
 #
 # Created by:
@@ -15,38 +15,46 @@
 # targets recognized by this makefile:
 #   all                 - compiles taipan
 #   clean               - remove all .o files and binaries
-#   install             - installs taipan
+#   install             - installs taipan (Linux only)
 
-prefix = /usr/local
-bindir = $(prefix)/games
+# --- Platform detection ---
+ifeq ($(OS),Windows_NT)
+    # Building on Windows with MinGW
+    CC      = gcc
+    LIBS    = -lpdcurses
+    EXE     = taipan.exe
+    RM      = del /Q
+    INSTALL = echo "Use cmake --install or copy taipan.exe manually."
+else
+    # Building on Linux/macOS
+    CC      = gcc
+    LIBS    = -lncurses
+    EXE     = taipan
+    RM      = rm -f
+    prefix  = /usr/local
+    bindir  = $(prefix)/games
+    INSTALL = install -m 4755 -o root -g root -s $(EXE) $(bindir)
+endif
 
-# 'make install' will compile and install the program
-
-CC = gcc
-CFLAGS = -Wall # Optimization/debugging flags added below, as appropriate.
+CFLAGS  = -Wall
 OBJECTS = taipan.o
-# EJB 2015-04-20 - Originally "curses", but I had to change it to "ncurses" to build.
-#LIBS = -lcurses
-LIBS = -lncurses
-RM = rm -f
 
 all: CFLAGS += -O3
-all: taipan
+all: $(EXE)
 
 debug: CFLAGS += -ggdb3 -DDEBUG
-debug: taipan
+debug: $(EXE)
 
 .PHONY: clean
 clean:
-	$(RM) taipan $(OBJECTS)
+	$(RM) $(EXE) $(OBJECTS)
 
 .PHONY: install
-install: taipan
-	install  -m 4755  -o root  -g root  -s taipan $(bindir)
+install: $(EXE)
+	$(INSTALL)
 
-taipan: $(OBJECTS)
-	$(CC) $(CFLAGS)  -o taipan $(OBJECTS) $(LIBS)
+$(EXE): $(OBJECTS)
+	$(CC) $(CFLAGS) -o $(EXE) $(OBJECTS) $(LIBS)
 
-taipan.o : taipan.c
-	$(CC) $(CFLAGS)  -c taipan.c  -o taipan.o
-
+taipan.o: taipan.c
+	$(CC) $(CFLAGS) -c taipan.c -o taipan.o

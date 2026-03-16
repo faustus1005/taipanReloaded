@@ -1,6 +1,6 @@
 /* ------------------------------------------------------------------------ *
  * Taipan version 0.9
- * A text/ncurses game for Linux.
+ * A text/curses trading game for Linux and Windows.
  *
  * Created by:
  *   Art Canfil
@@ -17,7 +17,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
+
+#ifdef _WIN32
+#  include <windows.h>   /* Sleep() */
+#  include <process.h>   /* _getpid() */
+#  define usleep(us) Sleep((DWORD)((us) / 1000))
+#  define getpid _getpid
+#else
+#  include <unistd.h>
+#endif
 
 #define GENERIC 1
 #define LI_YUEN 2
